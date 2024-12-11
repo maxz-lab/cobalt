@@ -19,10 +19,14 @@
 #include "starboard/android/shared/jni_utils.h"
 #include "starboard/android/shared/media_common.h"
 #include "starboard/common/log.h"
+#include "starboard/extension/video_render_algorithm.h"
 
 namespace starboard {
 namespace android {
 namespace shared {
+
+long VideoRenderAlgorithm::circular_early_times_arr_[kCircularEarlyTimeSamples];
+int VideoRenderAlgorithm::circular_sample_pos_ = 0;
 
 namespace {
 
@@ -104,6 +108,11 @@ void VideoRenderAlgorithm::Render(
 
     early_us = (adjusted_release_time_ns - system_time_ns) / 1000;
 
+    circular_early_times_arr_[circular_sample_pos_] = early_us;
+    if (++circular_sample_pos_ >= kCircularEarlyTimeSamples) {
+      circular_sample_pos_ = 0;
+    }
+
     if (early_us < kBufferTooLateThreshold) {
       frames->pop_front();
       ++dropped_frames_;
@@ -158,6 +167,28 @@ jlong VideoRenderAlgorithm::VideoFrameReleaseTimeHelper::AdjustReleaseTime(
   return env->CallLongMethodOrAbort(
       j_video_frame_release_time_helper_, "adjustReleaseTime", "(JJD)J",
       frame_presentation_time_us, unadjusted_release_time_ns, playback_rate);
+}
+
+int64_t GetAvgFrameEarlyTime() {
+  int64_t total = 0;
+  for (int i = 0; i < kCircularEarlyTimeSamples; i++) {
+    total += VideoRenderAlgorithm::circular_early_times_arr_[i] /
+             kCircularEarlyTimeSamples;
+  }
+  return total;
+}
+
+// Definitions of any functions included as components in the extension
+// are added here.
+
+const StarboardExtensionVideoRenderAlgorithmApi kVideoRenderAlgorithmApi = {
+    kStarboardExtensionVideoRenderAlgorithmName,
+    1,  // API version that's implemented.
+    &GetAvgFrameEarlyTime,
+};
+
+const void* GetAvgVideoRenderAlgorithmApi() {
+  return &kVideoRenderAlgorithmApi;
 }
 
 }  // namespace shared

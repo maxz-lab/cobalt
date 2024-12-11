@@ -36,6 +36,7 @@
 #include "starboard/extension/time_zone.h"
 #include "starboard/extension/updater_notification.h"
 #include "starboard/extension/url_fetcher_observer.h"
+#include "starboard/extension/video_render_algorithm.h"
 #include "starboard/system.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -615,6 +616,26 @@ TEST(ExtensionTest, StarboardSystemInfoExtension) {
   EXPECT_STREQ(extension_api->name, kExtensionName);
   EXPECT_EQ(extension_api->version, 1u);
   EXPECT_NE(extension_api->GetAppStartWithAndroidFix, nullptr);
+
+  const ExtensionApi* second_extension_api =
+      static_cast<const ExtensionApi*>(SbSystemGetExtension(kExtensionName));
+  EXPECT_EQ(second_extension_api, extension_api)
+      << "Extension struct should be a singleton";
+}
+
+TEST(ExtensionTest, StarboardViedoRenderAlgorithmGetEarlyTimeExtension) {
+  typedef StarboardExtensionVideoRenderAlgorithmApi ExtensionApi;
+  const char* kExtensionName = kStarboardExtensionVideoRenderAlgorithmName;
+
+  const ExtensionApi* extension_api =
+      static_cast<const ExtensionApi*>(SbSystemGetExtension(kExtensionName));
+  if (!extension_api) {
+    return;
+  }
+
+  EXPECT_STREQ(extension_api->name, kExtensionName);
+  EXPECT_EQ(extension_api->version, 1u);
+  EXPECT_NE(extension_api->GetAvgFrameEarlyTime, nullptr);
 
   const ExtensionApi* second_extension_api =
       static_cast<const ExtensionApi*>(SbSystemGetExtension(kExtensionName));

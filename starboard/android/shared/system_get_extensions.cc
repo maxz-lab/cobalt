@@ -23,6 +23,7 @@
 #include "starboard/android/shared/platform_service.h"
 #include "starboard/android/shared/player_set_max_video_input_size.h"
 #include "starboard/android/shared/system_info_api.h"
+#include "starboard/android/shared/video_render_algorithm.h"
 #include "starboard/common/log.h"
 #include "starboard/common/string.h"
 #if SB_IS(EVERGREEN_COMPATIBLE)
@@ -42,6 +43,7 @@
 #include "starboard/extension/platform_service.h"
 #include "starboard/extension/player_set_max_video_input_size.h"
 #include "starboard/extension/system_info.h"
+#include "starboard/extension/video_render_algorithm.h"
 
 const void* SbSystemGetExtension(const char* name) {
 #if SB_IS(EVERGREEN_COMPATIBLE)
@@ -102,6 +104,9 @@ const void* SbSystemGetExtension(const char* name) {
   }
   if (strcmp(name, kStarboardExtensionSystemInfoName) == 0) {
     return starboard::android::shared::GetSystemInfoApi();
+  }
+  if (strcmp(name, kStarboardExtensionVideoRenderAlgorithmName) == 0) {
+    return starboard::android::shared::GetAvgVideoRenderAlgorithmApi();
   }
   return NULL;
 }

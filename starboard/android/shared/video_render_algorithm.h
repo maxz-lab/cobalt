@@ -25,6 +25,8 @@ namespace starboard {
 namespace android {
 namespace shared {
 
+const int kCircularEarlyTimeSamples = 30;  // average early time for 30 frames
+
 class VideoRenderAlgorithm : public ::starboard::shared::starboard::player::
                                  filter::VideoRenderAlgorithm {
  public:
@@ -36,6 +38,7 @@ class VideoRenderAlgorithm : public ::starboard::shared::starboard::player::
               VideoRendererSink::DrawFrameCB draw_frame_cb) override;
   void Seek(int64_t seek_to_time) override;
   int GetDroppedFrames() override;
+  friend int64_t GetAvgFrameEarlyTime();
 
  private:
   class VideoFrameReleaseTimeHelper {
@@ -55,7 +58,12 @@ class VideoRenderAlgorithm : public ::starboard::shared::starboard::player::
   double playback_rate_ = 1.0;
   VideoFrameReleaseTimeHelper video_frame_release_time_helper_;
   int dropped_frames_ = 0;
+  static long circular_early_times_arr_[kCircularEarlyTimeSamples];
+  static int circular_sample_pos_;
 };
+
+const void* GetAvgVideoRenderAlgorithmApi();
+int64_t GetAvgFrameEarlyTime();
 
 }  // namespace shared
 }  // namespace android
